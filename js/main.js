@@ -1,5 +1,7 @@
 'use strict'
 
+
+const hideRightClick = window.addEventListener("contextmenu", e => e.preventDefault())
 var gBoard
 
 var gLevel = {
@@ -17,16 +19,18 @@ var gGame = {
 
 function onInit() {
     gBoard = buildBoard()
-    console.log(gBoard)
     setMinesNegsCount(gBoard)
     renderBoard(gBoard)
+    gGame.isOn = true
+    hideRightClick
+    checkGameOver()
 }
 
 function buildBoard() {
     const board = []
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < gLevel.SIZE; i++) {
         board[i] = []
-        for (var j = 0; j < 4; j++) {
+        for (var j = 0; j < gLevel.SIZE; j++) {
             board[i][j] = {
                 minesAroundCount: 0,
                 isShown: false,
@@ -36,19 +40,16 @@ function buildBoard() {
         }
     }
 
-    // for (var i = 0; i < 1; i++) {
-    //     const randRow = getRandomInt(0, 4)
-    //     const randRow2 = getRandomInt(0, 4)
-    //     for (var j = 0; j < 1; j++) {
-    //         const randCol = getRandomInt(0, 4)
-    //         const randCol2 = getRandomInt(0, 4)
-    //         board[randRow][randCol].isMine = true
-    //         board[randRow2][randCol2].isMine = true
-    //     }
-    // }
+    var minesAmount = gLevel.MINES
+    while (minesAmount > 0) {
+        const randRow = getRandomInt(0, gLevel.SIZE)
+        const randCol = getRandomInt(0, gLevel.SIZE)
+        if (!board[randRow][randCol].isMine) {
+            board[randRow][randCol].isMine = true
+            minesAmount--
+        }
+    }
 
-    board[1][1].isMine = true
-    board[2][3].isMine = true
 
     return board
 }
@@ -77,15 +78,15 @@ function setMinesNegsCount(board) {
 function renderBoard(board) {
     //DONE: Render the board as a <Table> to the page
     var strHTML = ''
-    for (var i = 0; i < board.length; i++) {
+    for (var i = 0; i < gLevel.SIZE; i++) {
         strHTML += '<tr>'
-        for (var j = 0; j < board[0].length; j++) {
+        for (var j = 0; j < gLevel.SIZE; j++) {
 
             const cell = board[i][j]
             const className = `cell cell-${i}-${j}`
             var cellContent = '🟦'
             if (!cell.isShown) {
-                strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})" >${cellContent}</td>`
+                strHTML += `<td class="${className}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="onCellMarked(this,  ${i}, ${j})">${cellContent}</td>`
             } else {
                 if (cell.isMine) {
                     strHTML += `<td class="${className} mine">💣</td>`
@@ -103,35 +104,51 @@ function renderBoard(board) {
 
 function onCellClicked(elCell, i, j) {
     //DONE : Called when a cell is clicked
-    console.log('check')
-    console.log('cell:', elCell, i, j)
+    // console.log('check')
+    // console.log('cell:', elCell, i, j)
+    if (!gGame.isOn) return
+    if (gBoard[i][j].isShown || gBoard[i][j].isMarked) return
 
-    if (gBoard[i][j].isShown || gBoard[i][j].isMarked) {
-        return
-    }
     gBoard[i][j].isShown = true
+    gGame.shownCount++
     elCell.innerText = gBoard[i][j].isMine ? '💣' : gBoard[i][j].minesAroundCount
 
     if (gBoard[i][j].isMine) {
-        //TODO: Build game over function
+        gGame.isOn = false
         console.log('Game Over! You clicked a mine!')
     }
 
     if (gBoard[i][j].minesAroundCount === 0) {
         //TODO:Expand all the neighbors 
     }
+    checkGameOver()
 }
 
-function onCellMarked(elCell) {
+function onCellMarked(elCell, i, j) {
+    if (!gGame.isOn) return
+    if (gBoard[i][j].isShown) return
 
-    //TODO: Called when a cell is right-clicked
-    //TODO: To check how can I hide the context menu
+    gBoard[i][j].isMarked = !gBoard[i][j].isMarked
 
+    if (gBoard[i][j].isMarked) {
+        elCell.innerText = '🚩'
+        gGame.markedCount++
+    } else {
+        elCell.innerText = '🟦'
+        gGame.markedCount--
+    }
+    console.log(gGame)
+
+    checkGameOver()
 }
 
 function checkGameOver() {
-    //TODO: Game ends when all mines are marked, and all the other cells are shown
-
+    if (gGame.markedCount === gLevel.MINES) {
+        const totalCells = gLevel.SIZE * gLevel.SIZE
+        if (gGame.markedCount + gGame.shownCount === totalCells) {
+            console.log('YOU WIN!')
+        }
+    }
 }
 
 function expandShown(board, elCell, i, j) {
