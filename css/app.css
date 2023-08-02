@@ -6,20 +6,30 @@
 table {
     margin: auto;
 }
+.smiley {
+    display: block;
+    margin: 0 auto;
+}
+
+.smiley img {
+    border: 3px dashed gray;
+    height: 40px;
+    margin-block-end: 10px;
+}
 
 
+.heart1,
+.heart2,
+.heart3 {
+    display: inline;
+}
 
-
-
-
-
-
-
-
-
-
-
-
+.heart1 img,
+.heart2 img,
+.heart3 img {
+    height: 20px;
+    margin-block-end: 10px;
+}
 
 /* ----------FOOTER---------- */
 

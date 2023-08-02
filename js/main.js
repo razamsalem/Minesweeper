@@ -1,8 +1,12 @@
 'use strict'
 
+//DONE: Make the game understand the user can win even if he step on mine (lives > 0)
+//TODO: If clicked on mine dont expand!
 
 const hideRightClick = window.addEventListener("contextmenu", e => e.preventDefault())
+
 var gBoard
+var lives = 3
 
 var gLevel = {
     SIZE: 4,
@@ -13,17 +17,17 @@ var gGame = {
     isOn: false,
     shownCount: 0,
     markedCount: 0,
-    secsPassed: 0
+    secsPassed: 0,
+    isFirstClick: true
 }
 
 
 function onInit() {
     gBoard = buildBoard()
-    setMinesNegsCount(gBoard)
     renderBoard(gBoard)
     gGame.isOn = true
     hideRightClick
-    checkGameOver()
+
 }
 
 function buildBoard() {
@@ -40,18 +44,21 @@ function buildBoard() {
         }
     }
 
+    return board
+}
+
+function deployMines(row, col) {
     var minesAmount = gLevel.MINES
     while (minesAmount > 0) {
         const randRow = getRandomInt(0, gLevel.SIZE)
         const randCol = getRandomInt(0, gLevel.SIZE)
-        if (!board[randRow][randCol].isMine) {
-            board[randRow][randCol].isMine = true
+        if (!gBoard[randRow][randCol].isMine && (randRow !== row || randCol !== col)) {
+            gBoard[randRow][randCol].isMine = true
             minesAmount--
         }
     }
-
-
-    return board
+    gGame.isFirstClick = false
+    setMinesNegsCount(gBoard)
 }
 
 function setMinesNegsCount(board) {
@@ -103,10 +110,8 @@ function renderBoard(board) {
 
 
 function onCellClicked(elCell, i, j) {
-    //DONE : Called when a cell is clicked
-    // console.log('check')
-    // console.log('cell:', elCell, i, j)
     if (!gGame.isOn) return
+    if (gGame.isFirstClick) deployMines(i, j)
     if (gBoard[i][j].isShown || gBoard[i][j].isMarked) return
 
     gBoard[i][j].isShown = true
@@ -114,15 +119,28 @@ function onCellClicked(elCell, i, j) {
     elCell.innerText = gBoard[i][j].isMine ? '💣' : gBoard[i][j].minesAroundCount
 
     if (gBoard[i][j].isMine) {
-        gGame.isOn = false
-        console.log('Game Over! You clicked a mine!')
+        gLevel.MINES--
+        lives--
+        
+        const heartImg = document.querySelector(`.heart${lives + 1}-img`)
+        heartImg.src = "img/black-heart.png"
+        if (lives === 0) {
+            const heartImg = document.querySelector(`.heart${lives + 1}-img`)
+            heartImg.src = "img/black-heart.png"
+            gGame.isOn = false
+            console.log('Game Over! You clicked a mine!')
+            const smileyImg = document.querySelector('.smiley-img')
+            smileyImg.src = "img/dead.png"
+        }
     }
 
     if (gBoard[i][j].minesAroundCount === 0) {
-        //TODO:Expand all the neighbors 
+        //DONE:Expand all the neighbors 
+        expandShown(gBoard, elCell, i, j)
     }
     checkGameOver()
 }
+
 
 function onCellMarked(elCell, i, j) {
     if (!gGame.isOn) return
@@ -143,18 +161,42 @@ function onCellMarked(elCell, i, j) {
 }
 
 function checkGameOver() {
-    if (gGame.markedCount === gLevel.MINES) {
-        const totalCells = gLevel.SIZE * gLevel.SIZE
-        if (gGame.markedCount + gGame.shownCount === totalCells) {
+    const totalCells = gLevel.SIZE * gLevel.SIZE
+    const totalMines = gLevel.MINES
+
+    if(gGame.markedCount === totalMines) {
+        if(gGame.markedCount + gGame.shownCount === totalCells) {
             console.log('YOU WIN!')
+            const smileyImg = document.querySelector('.smiley-img')
+            smileyImg.src = "img/cool.png"
         }
     }
+
 }
 
-function expandShown(board, elCell, i, j) {
-    //TODO: When user clicks a cell with no mines around , open not only that cell but also its neighbors.
-    //NOTE: Start with a basic implementation that only opens the non mine 1st degree neighbors
-    //BONUS: for later , try to work more like the real algorithm 
+function expandShown(board, elCell, i, j) {  //elCell will be activated in the recursion (elNeighborCell), its not just offline!
+    for (var rowIdx = i - 1; rowIdx <= i + 1; rowIdx++) {
+        if (rowIdx < 0 || rowIdx >= board.length) continue
 
+        for (var colIdx = j - 1; colIdx <= j + 1; colIdx++) {
+            if (colIdx < 0 || colIdx >= board[0].length) continue
+            if (rowIdx === i && colIdx === j) continue
+
+            var currCell = board[rowIdx][colIdx]
+
+            if (!currCell.isShown && !currCell.isMarked) {
+                currCell.isShown = true
+                gGame.shownCount++
+
+                var elNeighborCell = document.querySelector(`.cell-${rowIdx}-${colIdx}`)
+                elNeighborCell.innerText = currCell.isMine ? '💣' : currCell.minesAroundCount
+
+                if (currCell.minesAroundCount === 0) {
+                    expandShown(board, elNeighborCell, rowIdx, colIdx)
+                }
+            }
+        }
+    }
+    checkGameOver()
 }
 
