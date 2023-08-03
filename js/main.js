@@ -7,6 +7,7 @@ const gAudio = new Audio("sound/music.mp3")
 
 var gBoard
 var gLives
+var gFlagLeft
 var gTimeInterval
 var isMoonToggled = false
 var isMusicPlaying = false
@@ -53,7 +54,9 @@ function onInit(level = 'medium') {
     gGame.isFirstClick = true
     gGame.secsPassed = 0
     gGame.isOn = true
+    gFlagLeft = gLevel.MINES
     renderUI()
+    countFlag()
     updateTimerDisplay()
     gTimeInterval = setInterval(updateTimer, 1000)
 }
@@ -148,18 +151,19 @@ function onCellClicked(elCell, i, j) {
     elCell.innerText = gBoard[i][j].isMine ? '💣' : gBoard[i][j].minesAroundCount
 
     if (gBoard[i][j].isMine) {
+        updateFlag()
         gLevel.MINES--
         gLives--
         playDamageSound()
 
         const heartImg = document.querySelector(`.heart${gLives + 1}-img`)
         heartImg.src = "img/black-heart.png"
-        if(gLives === 2) {
+        if (gLives === 2) {
             const smileyImg = document.querySelector('.smiley-img')
             smileyImg.src = "img/hurt.png"
         }
 
-        if(gLives === 1) {
+        if (gLives === 1) {
             const smileyImg = document.querySelector('.smiley-img')
             smileyImg.src = "img/danger.png"
         }
@@ -169,7 +173,7 @@ function onCellClicked(elCell, i, j) {
             const heartImg = document.querySelector(`.heart${gLives + 1}-img`)
             heartImg.src = "img/black-heart.png"
             gGame.isOn = false
-            msg('Game Over! You clicked a mine!')
+            msg('Game Over!, Click me to Respawn')
             clearInterval(gTimeInterval)
             revealMines()
             const smileyImg = document.querySelector('.smiley-img')
@@ -189,15 +193,17 @@ function onCellMarked(elCell, i, j) {
     if (!gGame.isOn) return
     if (gBoard[i][j].isShown) return
     playExpandSound()
-
     gBoard[i][j].isMarked = !gBoard[i][j].isMarked
 
     if (gBoard[i][j].isMarked) {
+        if (gFlagLeft === 0) return
         elCell.innerText = '🚩'
         gGame.markedCount++
+        updateFlag()
     } else {
         elCell.innerText = '🟦'
         gGame.markedCount--
+        addFlag()
     }
     console.log(gGame)
 
@@ -218,7 +224,9 @@ function checkGameOver() {
 
 }
 
-function expandShown(board, elCell, i, j) {  //elCell will be activated in the recursion (elNeighborCell), its not just offline
+function expandShown(board, elCell, i, j) {
+
+    if (elCell === gBoard.MINES) return
 
     for (var rowIdx = i - 1; rowIdx <= i + 1; rowIdx++) {
         if (rowIdx < 0 || rowIdx >= board.length) continue
@@ -257,20 +265,39 @@ function revealMines() {
     }
 }
 
-function updateTimer() {
+function updateTimer() { //model
     gGame.secsPassed++
     updateTimerDisplay()
 }
 
-function updateTimerDisplay() {
+function updateTimerDisplay() { //DOM
     const elTimer = document.querySelector('.timer')
-    elTimer.innerText = `Time ${gGame.secsPassed}`
+    elTimer.innerText = `${gGame.secsPassed}🕒`
 }
 
+function updateFlag() { //model
+    gFlagLeft--
+    countFlag()
+}
+
+function addFlag() {
+    gFlagLeft++
+    countFlag()
+}
+
+function countFlag() { // dom
+    const elFlagLeft = document.querySelector('.flag-count')
+    elFlagLeft.innerText = gFlagLeft
+}
 
 function msg(text) {
     gElModal.classList.remove('hidden')
     gElModal.innerText = text
+}
+
+function showHelp() {
+    const elHelp = document.querySelector('.instruction')
+    elHelp.classList.toggle('hidden')
 }
 
 function renderUI() {
@@ -319,9 +346,9 @@ function onRestart() {
 
 function toggleMoon(moon) {
     if (isMoonToggled) {
-        moon.innerText = '🌒'
-    } else {
         moon.innerText = '🌔'
+    } else {
+        moon.innerText = '🌒'
     }
     isMoonToggled = !isMoonToggled
 }
@@ -330,7 +357,7 @@ function toggleMoon(moon) {
 
 function toggleMusic() {
     const playButton = document.querySelector('.play')
-  
+
     if (!isMusicPlaying) {
         gAudio.loop = true
         gAudio.play()
