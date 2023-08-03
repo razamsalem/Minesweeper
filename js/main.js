@@ -1,12 +1,15 @@
 'use strict'
 
-//DONE: Make the game understand the user can win even if he step on mine (lives > 0)
-//TODO: If clicked on mine dont expand!
 
 const hideRightClick = window.addEventListener("contextmenu", e => e.preventDefault())
+const gElModal = document.querySelector('.modal')
+const gAudio = new Audio("sound/music.mp3")
 
 var gBoard
-var lives = 3
+var gLives
+var gTimeInterval
+var isMoonToggled = false
+var isMusicPlaying = false
 
 var gLevel = {
     SIZE: 4,
@@ -22,12 +25,37 @@ var gGame = {
 }
 
 
-function onInit() {
+function onInit(level = 'medium') {
+    if (level === 'easy') {
+        gLevel = {
+            SIZE: 4,
+            MINES: 2
+        }
+        gLives = 1;
+    } else if (level === 'medium') {
+        gLevel = {
+            SIZE: 8,
+            MINES: 14
+        }
+        gLives = 3;
+    } else if (level === 'hard') {
+        gLevel = {
+            SIZE: 12,
+            MINES: 32
+        };
+        gLives = 3
+    }
+    playNewLevelSound()
+    clearInterval(gTimeInterval)
     gBoard = buildBoard()
     renderBoard(gBoard)
+    gElModal.classList.add('hidden')
+    gGame.isFirstClick = true
+    gGame.secsPassed = 0
     gGame.isOn = true
-    hideRightClick
-
+    renderUI()
+    updateTimerDisplay()
+    gTimeInterval = setInterval(updateTimer, 1000)
 }
 
 function buildBoard() {
@@ -114,21 +142,36 @@ function onCellClicked(elCell, i, j) {
     if (gGame.isFirstClick) deployMines(i, j)
     if (gBoard[i][j].isShown || gBoard[i][j].isMarked) return
 
+    playExpandSound()
     gBoard[i][j].isShown = true
     gGame.shownCount++
     elCell.innerText = gBoard[i][j].isMine ? '💣' : gBoard[i][j].minesAroundCount
 
     if (gBoard[i][j].isMine) {
         gLevel.MINES--
-        lives--
-        
-        const heartImg = document.querySelector(`.heart${lives + 1}-img`)
+        gLives--
+        playDamageSound()
+
+        const heartImg = document.querySelector(`.heart${gLives + 1}-img`)
         heartImg.src = "img/black-heart.png"
-        if (lives === 0) {
-            const heartImg = document.querySelector(`.heart${lives + 1}-img`)
+        if(gLives === 2) {
+            const smileyImg = document.querySelector('.smiley-img')
+            smileyImg.src = "img/hurt.png"
+        }
+
+        if(gLives === 1) {
+            const smileyImg = document.querySelector('.smiley-img')
+            smileyImg.src = "img/danger.png"
+        }
+
+        if (gLives === 0) {
+            playLosingSound()
+            const heartImg = document.querySelector(`.heart${gLives + 1}-img`)
             heartImg.src = "img/black-heart.png"
             gGame.isOn = false
-            console.log('Game Over! You clicked a mine!')
+            msg('Game Over! You clicked a mine!')
+            clearInterval(gTimeInterval)
+            revealMines()
             const smileyImg = document.querySelector('.smiley-img')
             smileyImg.src = "img/dead.png"
         }
@@ -145,6 +188,7 @@ function onCellClicked(elCell, i, j) {
 function onCellMarked(elCell, i, j) {
     if (!gGame.isOn) return
     if (gBoard[i][j].isShown) return
+    playExpandSound()
 
     gBoard[i][j].isMarked = !gBoard[i][j].isMarked
 
@@ -164,17 +208,18 @@ function checkGameOver() {
     const totalCells = gLevel.SIZE * gLevel.SIZE
     const totalMines = gLevel.MINES
 
-    if(gGame.markedCount === totalMines) {
-        if(gGame.markedCount + gGame.shownCount === totalCells) {
-            console.log('YOU WIN!')
-            const smileyImg = document.querySelector('.smiley-img')
-            smileyImg.src = "img/cool.png"
-        }
+    if (gGame.markedCount === totalMines && gGame.shownCount === totalCells - totalMines) {
+        msg('YOU WIN!')
+        clearInterval(gTimeInterval)
+        playWinningSound()
+        const smileyImg = document.querySelector('.smiley-img')
+        smileyImg.src = "img/cool.png"
     }
 
 }
 
-function expandShown(board, elCell, i, j) {  //elCell will be activated in the recursion (elNeighborCell), its not just offline!
+function expandShown(board, elCell, i, j) {  //elCell will be activated in the recursion (elNeighborCell), its not just offline
+
     for (var rowIdx = i - 1; rowIdx <= i + 1; rowIdx++) {
         if (rowIdx < 0 || rowIdx >= board.length) continue
 
@@ -183,6 +228,7 @@ function expandShown(board, elCell, i, j) {  //elCell will be activated in the r
             if (rowIdx === i && colIdx === j) continue
 
             var currCell = board[rowIdx][colIdx]
+            if (currCell.MINES) return
 
             if (!currCell.isShown && !currCell.isMarked) {
                 currCell.isShown = true
@@ -200,3 +246,123 @@ function expandShown(board, elCell, i, j) {  //elCell will be activated in the r
     checkGameOver()
 }
 
+function revealMines() {
+    for (var i = 0; i < gLevel.SIZE; i++) {
+        for (var j = 0; j < gLevel.SIZE; j++) {
+            if (gBoard[i][j].isMine) {
+                const elCell = document.querySelector(`.cell-${i}-${j}`)
+                elCell.innerText = '💣'
+            }
+        }
+    }
+}
+
+function updateTimer() {
+    gGame.secsPassed++
+    updateTimerDisplay()
+}
+
+function updateTimerDisplay() {
+    const elTimer = document.querySelector('.timer')
+    elTimer.innerText = `Time ${gGame.secsPassed}`
+}
+
+
+function msg(text) {
+    gElModal.classList.remove('hidden')
+    gElModal.innerText = text
+}
+
+function renderUI() {
+    const smileyImg = document.querySelector('.smiley-img')
+    smileyImg.src = "img/happy.png"
+
+    const heartImg = document.querySelector(`.heart1-img`)
+    const heartImg2 = document.querySelector(`.heart2-img`)
+    const heartImg3 = document.querySelector(`.heart3-img`)
+
+
+    if (gLives === 1) {
+        heartImg.src = "img/red-heart.png"
+        heartImg2.style.display = 'none'
+        heartImg3.style.display = 'none'
+    } else {
+        heartImg.src = "img/red-heart.png"
+        heartImg2.src = "img/red-heart.png"
+        heartImg3.src = "img/red-heart.png"
+        heartImg2.style.display = 'inline'
+        heartImg3.style.display = 'inline'
+    }
+}
+
+function darkMode() {
+    const elImg = document.querySelector('.smiley img')
+    elImg.classList.toggle('border')
+    document.body.classList.toggle('dark-mode')
+}
+
+function onEasy() {
+    onInit('easy')
+}
+
+function onMedium() {
+    onInit('medium')
+}
+
+function onHard() {
+    onInit('hard')
+}
+
+function onRestart() {
+    window.location.reload()
+}
+
+function toggleMoon(moon) {
+    if (isMoonToggled) {
+        moon.innerText = '🌒'
+    } else {
+        moon.innerText = '🌔'
+    }
+    isMoonToggled = !isMoonToggled
+}
+
+//-----------------MUSIC-------------------
+
+function toggleMusic() {
+    const playButton = document.querySelector('.play')
+  
+    if (!isMusicPlaying) {
+        gAudio.loop = true
+        gAudio.play()
+        playButton.innerText = '⏸️'
+    } else {
+        gAudio.pause()
+        playButton.innerText = '▶️'
+    }
+    isMusicPlaying = !isMusicPlaying
+}
+
+function playDamageSound() {
+    const sound = new Audio('sound/damage.mp3')
+    sound.play()
+}
+
+function playLosingSound() {
+    const sound = new Audio('sound/lose.mp3')
+    sound.play()
+}
+
+function playExpandSound() {
+    const sound = new Audio('sound/expand.wav')
+    sound.play()
+}
+
+function playNewLevelSound() {
+    const sound = new Audio('sound/new-game.wav')
+    sound.play()
+}
+
+function playWinningSound() {
+    const sound = new Audio('sound/winning.wav')
+    sound.play()
+}

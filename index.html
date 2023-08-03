@@ -13,18 +13,31 @@
 </head>
 
 <body onload="onInit()">
-    <h1>Mine💣Sweeper</h1>
-    <p class="smiley"><img class="smiley-img" src="img/happy.png"></p>
+    <button class="play" onclick="toggleMusic()">▶️</button>
+    <button class="dark" onclick="darkMode(), toggleMoon(this) ">🌒</button>
+    <h1>Mine<span onclick="darkMode()" style="cursor: pointer;">💣</span>Sweeper</h1>
+    <p class="smiley" onclick="onRestart()"><img class="smiley-img" src="img/happy.png"></p>
     
     <p class="heart1"><img class="heart1-img" src="img/red-heart.png"></p>
     <p class="heart2"><img class="heart2-img" src="img/red-heart.png"></p>
     <p class="heart3"><img class="heart3-img" src="img/red-heart.png"></p>
     
+    <div class="modal">
+        <span></span>
+    </div>
+
     <table class="board-container">
         <tbody class="board"></tbody>
     </table>
 
+    <p class="timer">Time: 0</p>
 
+    <div class="level-buttons">
+        <button class="easy" onclick="onEasy()">Easy</button>
+        <button class="medium" onclick="onMedium()">Medium</button>
+        <button class="hard" onclick="onInit('hard')">Hard</button>
+    </div>
+    
     <section class="footer">
         <hr>
         Still under construction 🚧🏗️ <br><br> Made by Raz Amsalem

@@ -5,18 +5,20 @@
 
 table {
     margin: auto;
+    cursor:cell
 }
+
 .smiley {
     display: block;
     margin: 0 auto;
 }
 
 .smiley img {
-    border: 3px dashed gray;
+    border: 3px groove black;
     height: 40px;
     margin-block-end: 10px;
+    cursor: pointer;
 }
-
 
 .heart1,
 .heart2,
@@ -31,10 +33,79 @@ table {
     margin-block-end: 10px;
 }
 
+.hidden {
+    display: none;
+}
+
+.modal {
+    font-size: 14px;
+    margin:10px;
+    color: gold;
+}
+
+
+/* ----------Buttons---------- */
+
+.level-buttons {
+    margin-block-start: 10px;
+}
+
+.level-buttons button {
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+.easy:hover {
+    color: rgb(61, 224, 224);
+}
+
+.medium:hover {
+    color: purple;
+}
+
+.hard:hover {
+    color: red;
+}
+
+
+.play {
+    position: absolute;
+    right: 45px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+/* ----------DARK MODE---------- */
+
+.dark {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.dark-mode {
+    background-color: #121212;
+    color: white;
+}
+.dark-mode button{
+    background-color: #121212;
+    color: white;
+}
+
+.dark-mode .border {
+    border-color: white;
+}
+
 /* ----------FOOTER---------- */
 
 .footer {
     text-align: center;
     margin-block-start: 30px;
     font-size: 10px;
+}
+
+.footer hr {
+    margin-block-end: 15px;
 }
