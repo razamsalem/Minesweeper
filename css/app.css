@@ -4,14 +4,23 @@
 }
 
 body {
+    zoom: 135%;
     background-color: #8ab4f2;
 }
 
 table {
     margin: auto;
-    cursor: cell
+    cursor: cell;
+    outline: 5px outset #F9E795;
+    border: 3px outset #FF69B4;
+    background-color: #FFA351;
+    margin-block-end: 7px;
+    margin-block-start: 5px;
 }
 
+table:hover {
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.4)
+}
 
 .smiley {
     display: block;
@@ -80,17 +89,33 @@ table {
     cursor: pointer;
     border-radius: 10px;
 }
-
+.easy {
+    background-color:rgb(61, 224, 224) ;
+    color: white;
+}
 .easy:hover {
     color: rgb(61, 224, 224);
+    background: #fff;
+}
+
+.medium {
+    background-color: purple;
+    color: white
 }
 
 .medium:hover {
     color: purple;
+    background-color: #fff;
+}
+
+.hard {
+    background-color: red;
+    color: #fff;
 }
 
 .hard:hover {
     color: red;
+    background-color: #fff;
 }
 
 .level-buttons button:hover {
@@ -104,6 +129,7 @@ table {
     border: none;
     cursor: pointer;
 }
+
 
 .help {
     position: absolute;
@@ -129,8 +155,27 @@ table {
 }
 
 .dark-mode button {
-    background-color: #121212;
     color: white;
+}
+
+.dark-mode .hard:hover {
+    color: red;
+    background-color: #121212;
+}
+
+.dark-mode .medium:hover {
+    color: purple;
+    background-color: #121212;
+}
+
+.dark-mode .easy:hover {
+    color: rgb(61, 224, 224);
+    background-color: #121212;
+}
+
+
+.dark-mode table:hover {
+    box-shadow: 0 0 20px 0 rgba(255, 255, 255, 0.4)
 }
 
 .dark-mode .border {

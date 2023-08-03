@@ -25,7 +25,6 @@ var gGame = {
     isFirstClick: true
 }
 
-
 function onInit(level = 'medium') {
     if (level === 'easy') {
         gLevel = {
@@ -139,7 +138,6 @@ function renderBoard(board) {
     elContainer.innerHTML = strHTML
 }
 
-
 function onCellClicked(elCell, i, j) {
     if (!gGame.isOn) return
     if (gGame.isFirstClick) deployMines(i, j)
@@ -188,7 +186,6 @@ function onCellClicked(elCell, i, j) {
     checkGameOver()
 }
 
-
 function onCellMarked(elCell, i, j) {
     if (!gGame.isOn) return
     if (gBoard[i][j].isShown) return
@@ -226,7 +223,7 @@ function checkGameOver() {
 
 function expandShown(board, elCell, i, j) {
 
-    if (elCell === gBoard.MINES) return
+    if (gBoard[i][j].isMine) return
 
     for (var rowIdx = i - 1; rowIdx <= i + 1; rowIdx++) {
         if (rowIdx < 0 || rowIdx >= board.length) continue
@@ -236,7 +233,7 @@ function expandShown(board, elCell, i, j) {
             if (rowIdx === i && colIdx === j) continue
 
             var currCell = board[rowIdx][colIdx]
-            if (currCell.MINES) return
+            
 
             if (!currCell.isShown && !currCell.isMarked) {
                 currCell.isShown = true
