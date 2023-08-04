@@ -80,6 +80,15 @@ table:hover {
 
 /* ----------Buttons---------- */
 
+.undo-btn {
+    cursor: pointer;
+}
+
+.undo-btn:hover {
+    color: #FFA351;
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2)
+}
+
 .level-buttons {
     margin-block-start: 10px;
 }
@@ -158,6 +167,18 @@ table:hover {
     color: white;
 }
 
+.dark-mode .undo-btn {
+    cursor: pointer;
+    color: #006666;
+    background-color: #121212;
+}
+
+.dark-mode .undo-btn:hover {
+    cursor: pointer;
+    color: #121212;
+    background-color: #006666;
+}
+
 .dark-mode .hard:hover {
     color: red;
     background-color: #121212;
@@ -193,4 +214,4 @@ table:hover {
 
 .footer hr {
     margin-block-end: 15px;
-}
+} 
