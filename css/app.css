@@ -5,7 +5,7 @@
 
 body {
     zoom: 135%;
-    background-color: #8ab4f2;
+    background-color: #D3D3D3;
 }
 
 table {
@@ -77,6 +77,21 @@ table:hover {
     border: none;
     margin-block-end: 6px;
 }
+
+
+.score-container {
+    position: absolute;
+    right: 25px;
+    border: 4px groove #99a3a3;
+    background-color: #a8b0b2;
+    height: 245px;
+    width: 135px;
+}
+
+.score-container:hover {
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2)
+}
+
 
 /* ----------Buttons---------- */
 

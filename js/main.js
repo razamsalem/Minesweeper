@@ -3,6 +3,14 @@
 const hideRightClick = window.addEventListener("contextmenu", e => e.preventDefault())
 const gElModal = document.querySelector('.modal')
 const gAudio = new Audio("sound/music.mp3")
+const easyBestScore = getBestScore('easy')
+const easyBestScoreSpan = document.querySelector('.easy-score .best-score-timer')
+const mediumBestScore = getBestScore('medium')
+const mediumBestScoreSpan = document.querySelector('.medium-score .best-score-timer')
+const hardBestScore = getBestScore('hard')
+const hardBestScoreSpan = document.querySelector('.hard-score .best-score-timer')
+
+
 
 var gBoard
 var gSavedBoards = [] // for undo
@@ -12,10 +20,7 @@ var gTimeInterval
 var isMoonToggled = false // for darkmode
 var isMusicPlaying = false
 
-var gLevel = {
-    SIZE: 4,
-    MINES: 2
-}
+var gLevel = {}
 
 var gGame = {
     isOn: false,
@@ -58,6 +63,9 @@ function onInit(level = 'medium') {
     countFlag() // to the DOM
     updateTimerDisplay() // to the DOM
     gTimeInterval = setInterval(updateTimer, 1000) //start the timer every new game
+    easyBestScoreSpan.innerText = easyBestScore //print for the user his best score according to the levels
+    mediumBestScoreSpan.innerText = mediumBestScore
+    hardBestScoreSpan.innerText = hardBestScore
 }
 
 function buildBoard() { // building the board for the model
@@ -154,7 +162,7 @@ function boardCopy(board) { // copy the current board to use that for undo funct
     return copy
 }
 
-function onCellClicked(elCell, i, j) { // the heart of the code // every interaction that the user do 
+function onCellClicked(elCell, i, j) {
     if (!gGame.isOn) return
     if (gGame.isFirstClick) deployMines(i, j) // after first click its deploy mines
     if (gBoard[i][j].isShown || gBoard[i][j].isMarked) return
@@ -187,7 +195,7 @@ function onCellClicked(elCell, i, j) { // the heart of the code // every interac
             const heartImg = document.querySelector(`.heart${gLives + 1}-img`)
             heartImg.src = "img/black-heart.png"
             gGame.isOn = false // stop the game
-            msg('Game Over!, Click me to Respawn') // the user get a msg from the smiley
+            msg('Game Over!') // the user get a msg from the smiley
             clearInterval(gTimeInterval) // stop timer
             revealMines() // show all the mines after the game over
             const smileyImg = document.querySelector('.smiley-img')
@@ -199,7 +207,7 @@ function onCellClicked(elCell, i, j) { // the heart of the code // every interac
         expandShown(gBoard, elCell, i, j)
     }
     gSavedBoards.push(boardCopy(gBoard)) // saving the last board to copy
-    checkWin()
+    checkWin(getUserLevel())
 }
 
 function onCellMarked(elCell, i, j) {
@@ -221,10 +229,10 @@ function onCellMarked(elCell, i, j) {
     console.log(gGame)
 
     gSavedBoards.push(boardCopy(gBoard)) // saving the last board to copy
-    checkWin()
+    checkWin(getUserLevel())
 }
 
-function checkWin() { // checking if the user win
+function checkWin(level) { // checking if the user win + get his current level
     const totalCells = gLevel.SIZE * gLevel.SIZE
     const totalMines = gLevel.MINES
 
@@ -234,8 +242,22 @@ function checkWin() { // checking if the user win
         playWinningSound()
         const smileyImg = document.querySelector('.smiley-img')
         smileyImg.src = "img/cool.png"
+        const currentBestScore = parseInt(getBestScore(level)) //the object to number
+        if (gGame.secsPassed < currentBestScore) { //if the current score less then best score its the new best score
+            saveBestScore(level, gGame.secsPassed)
+        }
     }
 
+}
+
+function getUserLevel() { // to know what level the user played for the best scores
+    if (gLevel.SIZE === 4 && gLevel.MINES === 2) {
+        return 'easy'
+    } else if (gLevel.SIZE === 8 && gLevel.MINES === 14) {
+        return 'medium'
+    } else if (gLevel.SIZE === 12 && gLevel.MINES === 32) {
+        return 'hard'
+    }
 }
 
 function expandShown(board, elCell, i, j) { // try to expand further if its empty cell (elCell is not just unused, in the recursion he's gonna be elNeighborCell)
@@ -265,7 +287,7 @@ function expandShown(board, elCell, i, j) { // try to expand further if its empt
             }
         }
     }
-    checkWin()
+    checkWin(getUserLevel())
 }
 
 function revealMines() { // make the mines reveal after the user dead
@@ -279,13 +301,21 @@ function revealMines() { // make the mines reveal after the user dead
     }
 }
 
-function makeUndo() { 
+function makeUndo() {
     if (gSavedBoards.length === 0) return
     gSavedBoards.pop() // to pop the same current board
     if (gSavedBoards.length > 0) {
         gBoard = boardCopy(gSavedBoards[gSavedBoards.length - 1]) // gBoard gonna be the last saved board (model)
         renderBoard(gBoard) // DOM
     }
+}
+
+function saveBestScore(level, score) { // saving the best score according to the level and the timer
+    localStorage.setItem(`${level}BestScore`, score)
+}
+
+function getBestScore(level) { // to get the best score from the same current game
+    return localStorage.getItem(`${level}BestScore`) || '000'
 }
 
 function updateTimer() { //model
