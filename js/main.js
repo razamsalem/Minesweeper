@@ -1,5 +1,7 @@
 'use strict'
 
+//unfortunately the localStorage doesnt work in github pages so i change it to sessionStorage
+
 const hideRightClick = window.addEventListener("contextmenu", e => e.preventDefault())
 const gElModal = document.querySelector('.modal')
 const gAudio = new Audio("sound/music.mp3")
@@ -311,11 +313,11 @@ function makeUndo() {
 }
 
 function saveBestScore(level, score) { // saving the best score according to the level and the timer
-    localStorage.setItem(`${level}BestScore`, score)
+    sessionStorage.setItem(`${level}BestScore`, score)
 }
 
 function getBestScore(level) { // to get the best score from the same current game
-    return localStorage.getItem(`${level}BestScore`) || '000'
+    return sessionStorage.getItem(`${level}BestScore`) || '000'
 }
 
 function updateTimer() { //model
